@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08bc3c4b6934e3f919e74f6923698b9, type: 3}
+  m_Name: GameSettings
+  m_EditorClassIdentifier:
+  startingGold: 60000
+  jackpot: 100000
+  equalMultiplier: 4
+  edgeBonus: 25
+  normalRisk: 35
+  distractedRisk: 15
+  repeatTeaRisk: 30
+  teaSeconds: 5
+  acts:
+  - stakes: e8030000d0070000ac0d0000
+    fine: 2000
+    guests:
+    - guestName: Рассеянный
+      extraSuspicion: 0
+    - guestName: Педант
+      extraSuspicion: 0
+    - guestName: Азартный
+      extraSuspicion: 0
+  - stakes: c409000088130000401f0000
+    fine: 4000
+    guests:
+    - guestName: Следящие глаза
+      extraSuspicion: 0
+    - guestName: Следящие глаза
+      extraSuspicion: 0
+    - guestName: Следящие глаза
+      extraSuspicion: 0
+    - guestName: Следящие глаза
+      extraSuspicion: 0
+    - guestName: Следящие глаза
+      extraSuspicion: 0
+  - stakes: 8813000010270000983a0000
+    fine: 6000
+    guests:
+    - guestName: Безликий силуэт
+      extraSuspicion: 0
+    - guestName: Безликий силуэт
+      extraSuspicion: 0
+    - guestName: Безликий силуэт
+      extraSuspicion: 0
+    - guestName: Безликий силуэт
+      extraSuspicion: 0
+    - guestName: Безликий силуэт
+      extraSuspicion: 0
+  - stakes: 8813000010270000983a0000
+    fine: 6000
+    guests:
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0
+    - guestName: Жуткий образ
+      extraSuspicion: 0

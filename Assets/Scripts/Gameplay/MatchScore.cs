@@ -1,28 +1,69 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MatchScore : MonoBehaviour
 {
-    public Text scoreText;
-    private int playerWins, opponentWins, rounds;
+    public GameSettings settings;
 
-    private void Start()
+    public int Gold, Act, Guest, Rounds;
+    public bool Finished;
+    public string Ending;
+
+    public ActSettings CurrentAct => settings.acts[Act - 1];
+    public GuestSettings CurrentGuest => CurrentAct.guests[Guest - 1];
+
+    public bool ResetMatch()
     {
-        scoreText.text = "Вы: 0   Противник: 0   Раунды: 0";
+        if (!settings.CheckSettings())
+        {
+            return false;
+        }
+
+        Gold = settings.startingGold;
+        Act = 1;
+        Guest = 1;
+        Rounds = 0;
+        Finished = false;
+        Ending = "";
+        return true;
     }
 
-    public void AddRound(RoundOutcome outcome)
+    public int GetStake(int index)
     {
-        rounds++;
-        if (outcome == RoundOutcome.PlayerWins)
-        {
-            playerWins++;
-        }
-        else if (outcome == RoundOutcome.OpponentWins)
-        {
-            opponentWins++;
-        }
+        return Mathf.Min(CurrentAct.stakes[index], Gold);
+    }
 
-        scoreText.text = $"Вы: {playerWins}   Противник: {opponentWins}   Раунды: {rounds}";
+    public bool LowGold()
+    {
+        return 2L * Gold < settings.startingGold;
+    }
+
+    public void AddRound(int change)
+    {
+        Gold = (int)System.Math.Max(0, System.Math.Min(int.MaxValue, (long)Gold + change));
+        Rounds++;
+
+        if (Gold == 0 && Act < 4)
+        {
+            Finished = true;
+            Ending = "Потеря дома. Украшения, утварь и ключ уходят за долги.";
+        }
+        else if (Act == 4 && Guest == CurrentAct.guests.Length)
+        {
+            Finished = true;
+            Ending = "Моральное разложение. Тройка… семёрка… туз…";
+        }
+    }
+
+    public void NextGuest()
+    {
+        if (Guest < CurrentAct.guests.Length)
+        {
+            Guest++;
+        }
+        else if (Act < 3 || (Act == 3 && Gold >= settings.jackpot))
+        {
+            Act++;
+            Guest = 1;
+        }
     }
 }

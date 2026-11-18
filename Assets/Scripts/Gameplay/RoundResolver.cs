@@ -2,40 +2,18 @@ using UnityEngine;
 
 public class RoundResolver : MonoBehaviour
 {
-    private bool playerCorrect, opponentCorrect;
-
-    public RoundOutcome Resolve(
-        int playerCard, Prediction playerPrediction,
-        int opponentCard, Prediction opponentPrediction,
-        int tableCard)
+    public bool Resolve(int openCard, int nextCard, Prediction prediction)
     {
-        playerCorrect = Compare(playerCard, tableCard) == playerPrediction;
-        opponentCorrect = Compare(opponentCard, tableCard) == opponentPrediction;
-
-        if (playerCorrect == opponentCorrect)
+        if (prediction == Prediction.Less)
         {
-            return RoundOutcome.Draw;
+            return nextCard < openCard;
+        }
+        if (prediction == Prediction.Equal)
+        {
+            return nextCard == openCard;
         }
 
-        if (playerCorrect)
-        {
-            return RoundOutcome.PlayerWins;
-        }
-        return RoundOutcome.OpponentWins;
-    }
-
-    private Prediction Compare(int handCard, int tableCard)
-    {
-        if (handCard < tableCard)
-        {
-            return Prediction.Less;
-        }
-        if (handCard == tableCard)
-        {
-            return Prediction.Equal;
-        }
-
-        return Prediction.Greater;
+        return nextCard > openCard;
     }
 }
 
@@ -44,11 +22,4 @@ public enum Prediction
     Less,
     Equal,
     Greater
-}
-
-public enum RoundOutcome
-{
-    Draw,
-    PlayerWins,
-    OpponentWins
 }
