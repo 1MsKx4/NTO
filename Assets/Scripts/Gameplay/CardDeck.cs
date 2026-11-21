@@ -2,43 +2,32 @@ using UnityEngine;
 
 public class CardDeck
 {
-    private int[] cards = new int[24];
-    private int index;
+    private int[] cards = new int[12];
+    private int index, randomIndex, saved;
 
     public void Shuffle()
     {
         index = 0;
         for (int i = 0; i < cards.Length; i++)
         {
-            cards[i] = i % 12 + 1;
+            cards[i] = i + 1;
         }
-        MixRemaining();
-    }
-
-    public void MixRemaining()
-    {
-        for (int i = cards.Length - 1; i > index; i--)
+        for (int i = cards.Length - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(index, i + 1);
-            int card = cards[i];
+            randomIndex = Random.Range(0, i + 1);
+            saved = cards[i];
             cards[i] = cards[randomIndex];
-            cards[randomIndex] = card;
+            cards[randomIndex] = saved;
         }
     }
 
     public int Draw()
     {
-        int card = Peek();
-        index++;
-        return card;
-    }
-
-    public int Peek()
-    {
         if (index == cards.Length)
         {
             Shuffle();
         }
-        return cards[index];
+        index++;
+        return cards[index - 1];
     }
 }

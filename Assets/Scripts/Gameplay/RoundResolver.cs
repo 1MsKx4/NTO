@@ -2,18 +2,30 @@ using UnityEngine;
 
 public class RoundResolver : MonoBehaviour
 {
-    public bool Resolve(int openCard, int nextCard, Prediction prediction)
+    public bool Compare(int card, int otherCard, Prediction prediction)
     {
         if (prediction == Prediction.Less)
         {
-            return nextCard < openCard;
+            return card < otherCard;
         }
         if (prediction == Prediction.Equal)
         {
-            return nextCard == openCard;
+            return card == otherCard;
         }
+        return card > otherCard;
+    }
 
-        return nextCard > openCard;
+    public Prediction GuestPrediction(int card)
+    {
+        if (card <= 5)
+        {
+            return Prediction.Less;
+        }
+        if (card >= 8)
+        {
+            return Prediction.Greater;
+        }
+        return (Prediction)Random.Range(0, 3);
     }
 }
 
@@ -22,4 +34,14 @@ public enum Prediction
     Less,
     Equal,
     Greater
+}
+
+public enum RoundPhase
+{
+    Newspaper,
+    Prediction,
+    Shuffling,
+    ThreeCards,
+    Result,
+    Ending
 }

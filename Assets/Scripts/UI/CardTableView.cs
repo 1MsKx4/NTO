@@ -4,328 +4,165 @@ using UnityEngine.UI;
 public class CardTableView : MonoBehaviour
 {
     public Text playerCardText, opponentCardText, tableCardText, roundResultText, scoreText;
+    public Text suspicionText, sleeveText, bankText;
+    public Image suspicionFill;
+    public GameObject suspicionBar;
     public Button lessButton, equalButton, greaterButton, nextRoundButton, skipButton;
-    public Button[] stakes, tricks;
-    public RoundResolver roundResolver;
-    public MatchScore matchScore;
+    public Button teaButton, bluffButton;
+    public Button[] stakes, tableCards;
+    public Text[] stakeLabels, cardLabels;
+    public Text nextLabel, teaLabel;
+    public GameObject sleeve;
+    public GameObject background, newspaperScreen;
+    public RoundController game;
+    public CheatController cheats;
     public Camera gameCamera;
 
-    private CardDeck deck = new CardDeck();
-    private Text suspicionText;
-    private Image suspicionFill;
-    private string[] trickNames = { "Чай", "Подглядеть", "Крап", "Тасовка" };
-    private int openCard, nextCard, stake, selectedStake, suspicion, teaCount, markedCard;
-    private float teaUntil;
-    private bool roundOpen, started, skipped, tutorialPlayed;
+    private bool playing, prediction, table, active;
+    private int amount;
+    private ColorBlock colors;
+    private string[] signs = { "<", "=", ">" };
 
-    private void Start()
+    public void Show()
     {
-        lessButton.onClick.AddListener(() => Guess(Prediction.Less));
-        equalButton.onClick.AddListener(() => Guess(Prediction.Equal));
-        greaterButton.onClick.AddListener(() => Guess(Prediction.Greater));
-        nextRoundButton.onClick.AddListener(Continue);
+        playing = game.phase != RoundPhase.Newspaper;
+        background.SetActive(playing);
+        newspaperScreen.SetActive(!playing);
+        roundResultText.gameObject.SetActive(playing);
+        if (!playing)
+        {
+            gameCamera.backgroundColor = Color.black;
+        }
+        prediction = game.phase == RoundPhase.Prediction;
+        table = game.phase == RoundPhase.ThreeCards || game.phase == RoundPhase.Shuffling ||
+            game.phase == RoundPhase.Result && game.table.revealed;
 
+        scoreText.gameObject.SetActive(playing);
+        opponentCardText.gameObject.SetActive(playing);
+        playerCardText.gameObject.SetActive(playing);
+        tableCardText.gameObject.SetActive(playing);
+        bankText.gameObject.SetActive(playing);
+        suspicionText.gameObject.SetActive(playing);
+        suspicionBar.SetActive(playing);
+        roundResultText.text = game.message;
+        nextRoundButton.gameObject.SetActive(playing && !prediction &&
+            game.phase != RoundPhase.Shuffling && game.phase != RoundPhase.ThreeCards);
+
+        nextLabel.text = "Следующий кон";
+        if (game.phase == RoundPhase.Newspaper)
+        {
+            nextLabel.text = "Открыть газету";
+        }
+        else if (game.phase == RoundPhase.Ending)
+        {
+            nextLabel.text = "Начать заново";
+        }
+        else if (game.match.GuestLeaving)
+        {
+            nextLabel.text = "Следующий гость";
+        }
+
+        lessButton.gameObject.SetActive(prediction);
+        equalButton.gameObject.SetActive(prediction);
+        greaterButton.gameObject.SetActive(prediction);
+        lessButton.interactable = game.stake > 0 && !cheats.holding;
+        equalButton.interactable = lessButton.interactable;
+        greaterButton.interactable = lessButton.interactable;
         for (int i = 0; i < stakes.Length; i++)
         {
-            int index = i;
-            stakes[i].onClick.AddListener(() => SelectStake(index));
-        }
-        for (int i = 0; i < tricks.Length; i++)
-        {
-            int index = i;
-            tricks[i].onClick.AddListener(() => Cheat(index));
-        }
-        skipButton.onClick.AddListener(Skip);
-
-        Fit(playerCardText, 680);
-        Fit(opponentCardText, 300);
-        playerCardText.rectTransform.anchoredPosition = new Vector2(0, 250);
-        opponentCardText.rectTransform.anchoredPosition = new Vector2(570, 285);
-        suspicionText = Instantiate(opponentCardText, opponentCardText.transform.parent);
-        suspicionText.name = "Suspicion";
-        suspicionText.rectTransform.anchoredPosition = new Vector2(570, 224);
-        suspicionText.raycastTarget = false;
-
-        Image track = new GameObject("Suspicion Bar", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-        track.transform.SetParent(opponentCardText.transform.parent, false);
-        track.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        track.rectTransform.anchorMax = track.rectTransform.anchorMin;
-        track.rectTransform.anchoredPosition = new Vector2(570, 179);
-        track.rectTransform.sizeDelta = new Vector2(174, 8);
-        track.color = new Color(0.24f, 0.24f, 0.24f);
-        track.raycastTarget = false;
-        suspicionFill = new GameObject("Fill", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-        suspicionFill.transform.SetParent(track.transform, false);
-        suspicionFill.rectTransform.anchorMin = Vector2.zero;
-        suspicionFill.rectTransform.anchorMax = Vector2.up;
-        suspicionFill.rectTransform.offsetMin = Vector2.zero;
-        suspicionFill.rectTransform.offsetMax = Vector2.zero;
-        suspicionFill.raycastTarget = false;
-
-        tableCardText.rectTransform.anchoredPosition = new Vector2(0, 122);
-        roundResultText.rectTransform.anchoredPosition = new Vector2(0, -320);
-        Fit(roundResultText, 1000);
-        Fit(scoreText, 1100);
-        ShowNewspaper();
-    }
-
-    private void Fit(Text label, int width)
-    {
-        label.rectTransform.sizeDelta = new Vector2(width, 72);
-        label.resizeTextForBestFit = true;
-        label.resizeTextMinSize = 18;
-        label.resizeTextMaxSize = 32;
-    }
-
-    private void ShowNewspaper()
-    {
-        started = false;
-        roundOpen = false;
-        playerCardText.text = "";
-        opponentCardText.text = "";
-        tableCardText.text = "";
-        scoreText.text = "";
-        roundResultText.text = "Газета: «Граф желает играть»";
-        nextRoundButton.GetComponentInChildren<Text>().text = "Открыть газету";
-        RefreshButtons();
-    }
-
-    private void Continue()
-    {
-        if (!started || matchScore.Finished)
-        {
-            if (!matchScore.ResetMatch())
+            active = playing && i < game.match.GetAct().stakes.Length;
+            stakes[i].gameObject.SetActive(active);
+            if (active)
             {
-                return;
-            }
-            deck.Shuffle();
-            started = true;
-            skipped = false;
-            tutorialPlayed = false;
-            markedCard = 0;
-        }
-        else
-        {
-            matchScore.NextGuest();
-        }
-
-        openCard = deck.Draw();
-        stake = 0;
-        selectedStake = -1;
-        suspicion = 0;
-        teaCount = 0;
-        teaUntil = 0;
-        roundOpen = true;
-        tableCardText.text = $"Открытая карта: {openCard}";
-        roundResultText.text = "Выберите ставку и угадайте следующую карту";
-        nextRoundButton.GetComponentInChildren<Text>().text = "Следующая раздача";
-        ShowTable();
-        RefreshButtons();
-    }
-
-    private void ShowTable()
-    {
-        int gold = matchScore.Gold;
-        int start = matchScore.settings.startingGold;
-        string room = "Золото и книги";
-        Color tint = new Color(0.18f, 0.20f, 0.12f);
-        if (gold * 3L < start * 2L)
-        {
-            room = "Половина богатств исчезла";
-            tint = new Color(0.13f, 0.15f, 0.14f);
-        }
-        if (gold * 4L < start)
-        {
-            room = $"Граф считает остаток: {gold:N0}";
-            tint = new Color(0.08f, 0.09f, 0.10f);
-        }
-
-        if (matchScore.Act == 4)
-        {
-            tint = new Color(0.13f, 0.08f, 0.23f);
-        }
-
-        gameCamera.backgroundColor = tint;
-        playerCardText.text = teaUntil > Time.time ? "Гость смотрит на чашку" : room;
-        opponentCardText.text = matchScore.CurrentGuest.guestName;
-        scoreText.text = $"Золото: {gold:N0}    Акт: {matchScore.Act}    Гость: {matchScore.Guest}/{matchScore.CurrentAct.guests.Length}    Раундов: {matchScore.Rounds}";
-        suspicionText.text = $"Подозрение: {suspicion}%";
-        suspicionFill.rectTransform.anchorMax = new Vector2(suspicion / 100f, 1f);
-        suspicionFill.color = Color.Lerp(new Color(0.79f, 0.65f, 0.36f), new Color(0.85f, 0.27f, 0.24f), suspicion / 100f);
-    }
-
-    private void Update()
-    {
-        if (roundOpen && teaUntil > 0 && Time.time >= teaUntil)
-        {
-            teaUntil = 0;
-            ShowTable();
-            RefreshButtons();
-        }
-    }
-
-    private void RefreshButtons()
-    {
-        bool canGuess = roundOpen && (stake > 0 || matchScore.Act == 4 && matchScore.Gold == 0);
-        lessButton.interactable = canGuess;
-        equalButton.interactable = canGuess;
-        greaterButton.interactable = canGuess;
-        nextRoundButton.interactable = !roundOpen;
-        lessButton.gameObject.SetActive(started);
-        equalButton.gameObject.SetActive(started);
-        greaterButton.gameObject.SetActive(started);
-        if (started)
-        {
-            equalButton.GetComponentInChildren<Text>(true).text = $"Равно  =   ×{matchScore.settings.equalMultiplier}";
-        }
-        suspicionText.gameObject.SetActive(started);
-        suspicionFill.transform.parent.gameObject.SetActive(started);
-
-        for (int i = 0; i < stakes.Length; i++)
-        {
-            int amount = started ? matchScore.GetStake(i) : 0;
-            stakes[i].gameObject.SetActive(started);
-            stakes[i].interactable = roundOpen && amount > 0 && (i != 0 || !matchScore.LowGold());
-            stakes[i].GetComponentInChildren<Text>(true).text = amount.ToString("N0");
-            ColorBlock colors = stakes[i].colors;
-            colors.normalColor = i == selectedStake ? new Color(0.89f, 0.74f, 0.45f) : Color.white;
-            colors.selectedColor = colors.normalColor;
-            stakes[i].colors = colors;
-        }
-        for (int i = 0; i < tricks.Length; i++)
-        {
-            bool unlocked = started && (i < 2 || matchScore.Act >= 2);
-            tricks[i].gameObject.SetActive(unlocked);
-            tricks[i].interactable = roundOpen && tutorialPlayed && stake > 0;
-            int risk = GetRisk(i);
-            tricks[i].GetComponentInChildren<Text>(true).text = $"{trickNames[i]}\n+{risk}%";
-        }
-        skipButton.gameObject.SetActive(started);
-        skipButton.interactable = roundOpen && tutorialPlayed && !skipped && !matchScore.LowGold();
-    }
-
-    private void SelectStake(int index)
-    {
-        stake = matchScore.GetStake(index);
-        selectedStake = index;
-        roundResultText.text = $"Ставка: {stake:N0}. Выберите <, = или >";
-        RefreshButtons();
-    }
-
-    private void Guess(Prediction prediction)
-    {
-        if (!roundOpen)
-        {
-            return;
-        }
-
-        nextCard = deck.Draw();
-        tableCardText.text = $"{openCard}  →  {nextCard}";
-        if (!roundResolver.Resolve(openCard, nextCard, prediction))
-        {
-            FinishRound(-stake, "Промах");
-            return;
-        }
-
-        int prize = stake;
-        if (prediction == Prediction.Equal)
-        {
-            prize *= matchScore.settings.equalMultiplier;
-        }
-        if (nextCard == 1 || nextCard == 12)
-        {
-            prize += (int)((long)prize * matchScore.settings.edgeBonus / 100);
-        }
-        FinishRound(prize, "Угадали");
-    }
-
-    private void Cheat(int trick)
-    {
-        int risk = GetRisk(trick);
-        string message;
-        if (trick == 0)
-        {
-            teaCount++;
-            teaUntil = Time.time + matchScore.settings.teaSeconds;
-            message = $"Гость отвлечён на {matchScore.settings.teaSeconds:0.#} с";
-        }
-        else
-        {
-            if (trick == 1)
-            {
-                message = $"Подглядели. Следующая карта: {deck.Peek()}";
-            }
-            else if (trick == 2)
-            {
-                markedCard = deck.Peek();
-                message = $"Пометили карту {markedCard}";
-            }
-            else
-            {
-                deck.MixRemaining();
-                message = "Оставшиеся карты перемешаны";
+                amount = game.match.GetStake(i);
+                stakeLabels[i].text = amount.ToString("N0");
+                if (game.match.Gold < 15000)
+                {
+                    stakeLabels[i].text = "Ва-банк " + amount.ToString("N0");
+                }
+                stakes[i].interactable = prediction && game.stake == 0 && game.match.StakeAvailable(i);
+                colors = stakes[i].colors;
+                colors.normalColor = Color.white;
+                colors.disabledColor = new Color(0.55f, 0.55f, 0.55f);
+                if (game.selectedStake == i)
+                {
+                    colors.disabledColor = new Color(0.9f, 0.74f, 0.45f);
+                }
+                stakes[i].colors = colors;
             }
         }
 
-        suspicion = Mathf.Min(100, suspicion + risk);
-        if (suspicion == 100)
+        teaButton.gameObject.SetActive(prediction || game.phase == RoundPhase.ThreeCards);
+        teaButton.interactable = !cheats.teaUsed && game.stake > 0;
+        bluffButton.gameObject.SetActive(prediction);
+        bluffButton.interactable = !cheats.bluffUsed && game.stake > 0 && !cheats.holding;
+        skipButton.gameObject.SetActive(prediction);
+        skipButton.interactable = !cheats.skipUsed && game.match.Gold >= 30000 &&
+            !cheats.roundCheated && !cheats.holding;
+        sleeve.SetActive(prediction && game.match.Act >= 2);
+
+        for (int i = 0; i < tableCards.Length; i++)
         {
-            markedCard = 0;
-            int fine = matchScore.CurrentAct.fine;
-            FinishRound(-stake - fine, "Поймали. Ставка сгорела");
-            return;
+            tableCards[i].gameObject.SetActive(table);
+            tableCards[i].interactable = game.phase == RoundPhase.ThreeCards;
+            cardLabels[i].text = "?";
+            if ((game.table.showing || game.table.revealed || cheats.holding &&
+                cheats.seenCards[i] && cheats.teaLeft > 0))
+            {
+                cardLabels[i].text = "Пусто";
+                if (i == game.table.correctCard)
+                {
+                    cardLabels[i].text = game.guestCard.ToString();
+                }
+            }
         }
 
-        if (markedCard != 0 && trick == 3 && deck.Peek() == markedCard)
+        if (playing)
         {
-            message += $". Сверху крап: {markedCard}";
+            playerCardText.text = $"<size=26>Ваша карта</size>\n<size=64>{game.playerCard}</size>";
+            opponentCardText.text = game.match.GetGuest().guestName + "\nКарта: ?";
+            if (cheats.guestVisible || game.predictionsMade)
+            {
+                opponentCardText.text = game.match.GetGuest().guestName + $"\nКарта: {game.guestCard}";
+            }
+            sleeveText.text = $"Рукав: {game.sleeveCard}\nПеретащить на свою карту";
+            scoreText.text = $"Золото: {game.match.Gold:N0}    Акт {game.match.Act}    Гость {game.match.Guest}/{game.match.GetAct().guests.Length}    Кон {game.match.GuestRound}/{game.match.GetGuest().rounds}";
+            bankText.text = $"Гость: {game.match.GuestGold:N0}    Банк: {game.stake * 2:N0}";
+            if (game.phase == RoundPhase.Result || game.phase == RoundPhase.Ending)
+            {
+                bankText.text = $"У гостя осталось: {game.match.GuestGold:N0}";
+            }
+            tableCardText.text = "Моя карта относительно карты гостя";
+            if (game.predictionsMade)
+            {
+                tableCardText.text = $"Вы: {signs[(int)game.playerPrediction]}    Гость: {signs[(int)game.guestPrediction]}";
+            }
+            gameCamera.backgroundColor = new Color(0.18f, 0.20f, 0.12f);
+            if (game.match.Gold <= 40000)
+            {
+                gameCamera.backgroundColor = new Color(0.13f, 0.15f, 0.14f);
+            }
+            if (game.match.Act == 4)
+            {
+                gameCamera.backgroundColor = new Color(0.13f, 0.08f, 0.23f);
+            }
+            ShowRisk();
         }
-        roundResultText.text = message;
-        ShowTable();
-        RefreshButtons();
     }
 
-    private int GetRisk(int trick)
+    public void ShowRisk()
     {
-        if (!started)
+        suspicionText.text = $"Подозрение: {cheats.suspicion:0}%";
+        teaLabel.text = "Чашка чая";
+        if (cheats.teaLeft > 0)
         {
-            return 0;
+            teaLabel.text = $"Отвернулся: {cheats.teaLeft:0.0} с";
         }
-        if (trick == 0)
+        else if (cheats.teaUsed)
         {
-            return teaCount == 0 ? 0 : matchScore.settings.repeatTeaRisk;
+            teaLabel.text = "Чашка потрачена";
         }
-        int risk = matchScore.settings.normalRisk;
-        if (teaUntil > Time.time)
-        {
-            risk = matchScore.settings.distractedRisk;
-        }
-        return Mathf.Min(100, risk + matchScore.CurrentGuest.extraSuspicion);
-    }
-
-    private void Skip()
-    {
-        skipped = true;
-        nextCard = deck.Draw();
-        tableCardText.text = $"{openCard}  →  {nextCard}";
-        FinishRound(0, "Раздача пропущена");
-    }
-
-    private void FinishRound(int change, string message)
-    {
-        roundOpen = false;
-        teaUntil = 0;
-        tutorialPlayed = true;
-        int oldGold = matchScore.Gold;
-        matchScore.AddRound(change);
-        int difference = matchScore.Gold - oldGold;
-        roundResultText.text = $"{message}. Золото: {difference:+#;-#;0}";
-        if (matchScore.Finished)
-        {
-            roundResultText.text = matchScore.Ending;
-            nextRoundButton.GetComponentInChildren<Text>().text = "Начать заново";
-        }
-        ShowTable();
-        RefreshButtons();
+        suspicionFill.rectTransform.anchorMax = new Vector2(1, cheats.suspicion / 100f);
+        suspicionFill.color = Color.Lerp(new Color(0.79f, 0.65f, 0.36f), Color.red, cheats.suspicion / 100f);
     }
 }
