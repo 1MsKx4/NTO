@@ -37,7 +37,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
             cheatClick = game.cheats.teaLeft > 0;
             if (card < 0 || cheatClick)
             {
-                game.cheats.Hold(card);
+                game.HoldCard(card);
             }
         }
     }
@@ -50,7 +50,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
             if (pressedSeconds >= game.match.settings.peekSeconds)
             {
                 cheatClick = true;
-                game.cheats.Hold(card);
+                game.HoldCard(card);
             }
         }
     }
@@ -72,7 +72,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
                 }
                 else
                 {
-                    game.cheats.Release(false);
+                    game.ReleaseCard(false);
                 }
             }
         }
@@ -82,7 +82,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     {
         if (card == -2 && data.button == PointerEventData.InputButton.Left)
         {
-            game.cheats.Hold(card);
+            game.HoldCard(card);
             dragging = game.cheats.holding;
             pressed = dragging;
         }
@@ -111,7 +111,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         cardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(playerCard, rect);
         dropped = playerCard.rect.Overlaps(new Rect(cardBounds.min, cardBounds.size));
         rect.anchoredPosition = home;
-        game.cheats.Release(dropped);
+        game.ReleaseCard(dropped);
     }
 
     private void OnApplicationFocus(bool focused)
@@ -121,7 +121,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
             pressed = false;
             dragging = false;
             rect.anchoredPosition = home;
-            game.cheats.Release(false);
+            game.ReleaseCard(false);
         }
     }
 
@@ -129,8 +129,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     {
         if (pressed)
         {
-            game.cheats.holding = false;
-            game.cheats.guestVisible = false;
+            game.CancelHold();
         }
         pressed = false;
         dragging = false;

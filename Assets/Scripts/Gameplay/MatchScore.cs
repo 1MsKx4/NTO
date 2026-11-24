@@ -6,6 +6,7 @@ public class MatchScore : MonoBehaviour
     public int Gold, Act, Guest, Rounds, GuestRound, GuestGold, Pledge;
     public bool Finished, GuestLeaving;
     public string Ending, PledgeMessage;
+    private bool extraGuest;
 
     public bool ResetMatch()
     {
@@ -19,6 +20,7 @@ public class MatchScore : MonoBehaviour
         Rounds = 0;
         Pledge = 0;
         Finished = false;
+        extraGuest = false;
         Ending = "";
         StartGuest();
         return true;
@@ -110,11 +112,28 @@ public class MatchScore : MonoBehaviour
     {
         if (GuestLeaving)
         {
-            Guest++;
-            if (Guest > GetAct().guests.Length)
+            if (Act == 3 && (Guest == GetAct().guests.Length || extraGuest))
             {
-                Act++;
-                Guest = 1;
+                if (Gold >= settings.bigWinGold)
+                {
+                    Act = 4;
+                    Guest = 1;
+                    extraGuest = false;
+                }
+                else
+                {
+                    Guest = Random.Range(1, GetAct().guests.Length + 1);
+                    extraGuest = true;
+                }
+            }
+            else
+            {
+                Guest++;
+                if (Guest > GetAct().guests.Length)
+                {
+                    Act++;
+                    Guest = 1;
+                }
             }
             StartGuest();
             return true;

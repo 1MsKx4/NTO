@@ -4,6 +4,7 @@ using UnityEngine;
 public class GameSettings : ScriptableObject
 {
     public int startingGold = 60000;
+    public int bigWinGold = 100000;
     public int[] pledges = { 10000, 10000, 20000 };
     public int equalMultiplier = 2, secondPhaseMultiplier = 2;
     public float peekSeconds = 0.4f, showCardSeconds = 0.5f;
@@ -13,7 +14,8 @@ public class GameSettings : ScriptableObject
 
     public bool CheckSettings()
     {
-        if (startingGold <= 0 || startingGold > 10000000 || pledges.Length != 3)
+        if (startingGold <= 0 || startingGold > 10000000 ||
+            bigWinGold <= startingGold || bigWinGold > 10000000 || pledges.Length != 3)
         {
             return false;
         }

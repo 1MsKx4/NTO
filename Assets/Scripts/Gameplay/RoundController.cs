@@ -14,13 +14,98 @@ public class RoundController : MonoBehaviour
     public string message;
     private CardDeck playerDeck = new CardDeck(), guestDeck = new CardDeck();
     private bool playerCorrect, guestCorrect, newGuest;
-    private int change;
+    private int change, savedCard;
     private int[] sleeveCards = { 1, 2, 11, 12 };
     private float bluffChance;
 
     private void Start()
     {
         Newspaper();
+    }
+
+    private void Update()
+    {
+        if (phase == RoundPhase.Prediction || phase == RoundPhase.ThreeCards)
+        {
+            cheats.Tick(match.GetGuest().extraSuspicion);
+            RefreshCheats();
+        }
+        if (phase == RoundPhase.Shuffling && table.changed)
+        {
+            table.changed = false;
+            if (table.ready)
+            {
+                phase = RoundPhase.ThreeCards;
+                message = "Найдите карту гостя среди трёх. Для подсмотра сначала используйте чашку.";
+            }
+            view.Show();
+        }
+    }
+
+    public void Tea()
+    {
+        if (!cheats.teaUsed && stake > 0 &&
+            (phase == RoundPhase.Prediction || phase == RoundPhase.ThreeCards))
+        {
+            cheats.Tea(match.GetAct().teaSeconds);
+            RefreshCheats();
+        }
+    }
+
+    public void HoldCard(int card)
+    {
+        if (!cheats.holding && stake > 0 &&
+            (phase == RoundPhase.Prediction && card < 0 ||
+             phase == RoundPhase.ThreeCards && card >= 0 && match.Act >= 2))
+        {
+            cheats.Hold(card);
+            RefreshCheats();
+        }
+    }
+
+    public void ReleaseCard(bool dropped)
+    {
+        cheats.Release(dropped, match.Act >= 2);
+        RefreshCheats();
+    }
+
+    public void CancelHold()
+    {
+        cheats.CancelHold();
+    }
+
+    private void RefreshCheats()
+    {
+        if (cheats.changed)
+        {
+            cheats.changed = false;
+            if (cheats.message != "")
+            {
+                message = cheats.message;
+                cheats.message = "";
+            }
+            if (cheats.swapCard)
+            {
+                cheats.swapCard = false;
+                savedCard = playerCard;
+                playerCard = sleeveCard;
+                sleeveCard = savedCard;
+                message = $"Подмена: ваша карта теперь {playerCard}, в рукаве {sleeveCard}.";
+            }
+            if (cheats.caught)
+            {
+                cheats.caught = false;
+                Finish(-stake, match.GetAct().fine, true);
+            }
+            else
+            {
+                view.Show();
+            }
+        }
+        else if (cheats.teaUsed)
+        {
+            view.ShowRisk();
+        }
     }
 
     public void Newspaper()
@@ -103,7 +188,8 @@ public class RoundController : MonoBehaviour
                 phase = RoundPhase.Shuffling;
                 message = "Оба угадали. Запомните карту гостя и следите за тасовкой.";
                 view.Show();
-                table.Begin();
+                table.Begin(match.settings.showCardSeconds,
+                    match.GetAct().shuffleSeconds, match.GetAct().shuffleMoves);
             }
             else
             {

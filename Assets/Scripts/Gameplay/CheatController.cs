@@ -2,12 +2,14 @@ using UnityEngine;
 
 public class CheatController : MonoBehaviour
 {
-    public RoundController game;
+    public GameSettings settings;
     public float suspicion, teaLeft;
     public bool teaUsed, bluffUsed, skipUsed, holding, roundCheated, guestVisible;
+    public bool changed, caught, swapCard;
+    public string message;
     public bool[] seenCards = new bool[3];
     public int cardsSeen;
-    private int target, savedCard;
+    private int target;
     private float heldSeconds;
     private bool performed;
 
@@ -25,6 +27,10 @@ public class CheatController : MonoBehaviour
         holding = false;
         roundCheated = false;
         guestVisible = false;
+        changed = false;
+        caught = false;
+        swapCard = false;
+        message = "";
         cardsSeen = 0;
         target = 0;
         heldSeconds = 0;
@@ -35,89 +41,82 @@ public class CheatController : MonoBehaviour
         }
     }
 
-    public void Tea()
+    public void Tea(float seconds)
     {
-        if (!teaUsed && game.stake > 0 &&
-            (game.phase == RoundPhase.Prediction || game.phase == RoundPhase.ThreeCards))
+        teaUsed = true;
+        roundCheated = true;
+        teaLeft = seconds;
+        suspicion = Mathf.Min(100, suspicion + settings.teaSuspicion);
+        changed = true;
+        if (suspicion >= 100)
         {
-            teaUsed = true;
-            roundCheated = true;
-            teaLeft = game.match.GetAct().teaSeconds;
-            suspicion = Mathf.Min(100, suspicion + game.match.settings.teaSuspicion);
-            if (suspicion >= 100)
-            {
-                Catch();
-            }
-            else
-            {
-                game.message = "Гость отвернулся. Удерживайте карту, затем отпустите до конца таймера.";
-                game.view.Show();
-            }
+            Catch();
+        }
+        else
+        {
+            message = "Гость отвернулся. Удерживайте карту, затем отпустите до конца таймера.";
         }
     }
 
     public void Hold(int card)
     {
-        if (!holding && game.stake > 0 &&
-            (game.phase == RoundPhase.Prediction && card < 0 ||
-             game.phase == RoundPhase.ThreeCards && card >= 0 && game.match.Act >= 2))
+        if (card >= 0 && !seenCards[card] && cardsSeen >= 2)
         {
-            if (card >= 0 && !seenCards[card] && cardsSeen >= 2)
-            {
-                game.message = "За чашку можно подсмотреть только две карты.";
-                game.view.Show();
-            }
-            else
-            {
-                target = card;
-                holding = true;
-                performed = false;
-                heldSeconds = 0;
-                roundCheated = true;
-            }
+            message = "За чашку можно подсмотреть только две карты.";
+            changed = true;
+        }
+        else
+        {
+            target = card;
+            holding = true;
+            performed = false;
+            heldSeconds = 0;
+            roundCheated = true;
+            changed = true;
         }
     }
 
-    public void Release(bool dropped)
+    public void Release(bool dropped, bool sleeveAvailable)
     {
         if (holding)
         {
             if (target == -2)
             {
-                if (dropped && teaLeft > 0 && game.match.Act >= 2)
+                if (dropped && teaLeft > 0 && sleeveAvailable)
                 {
-                    savedCard = game.playerCard;
-                    game.playerCard = game.sleeveCard;
-                    game.sleeveCard = savedCard;
-                    game.message = $"Подмена: ваша карта теперь {game.playerCard}, в рукаве {game.sleeveCard}.";
+                    swapCard = true;
                 }
                 else if (teaLeft <= 0)
                 {
-                    game.message = "Гость уже смотрит. Подмена сорвалась.";
+                    message = "Гость уже смотрит. Подмена сорвалась.";
                 }
                 else
                 {
-                    game.message = "Карта вернулась в рукав. Наложите её на вашу карту.";
+                    message = "Карта вернулась в рукав. Наложите её на вашу карту.";
                 }
             }
-            holding = false;
-            guestVisible = false;
-            game.view.Show();
+            CancelHold();
+            changed = true;
         }
     }
 
-    private void Update()
+    public void Tick(int extraSuspicion)
     {
         if (teaLeft > 0)
         {
             teaLeft = Mathf.Max(0, teaLeft - Time.deltaTime);
+            if (teaLeft == 0)
+            {
+                message = "Гость снова смотрит.";
+                changed = true;
+            }
         }
         if (holding)
         {
             if (teaLeft <= 0)
             {
                 suspicion = Mathf.Min(100, suspicion +
-                    (game.match.settings.handSuspicion + game.match.GetGuest().extraSuspicion) * Time.deltaTime);
+                    (settings.handSuspicion + extraSuspicion) * Time.deltaTime);
                 guestVisible = false;
                 if (suspicion >= 100)
                 {
@@ -127,7 +126,7 @@ public class CheatController : MonoBehaviour
             else
             {
                 heldSeconds += Time.deltaTime;
-                if (!performed && heldSeconds >= game.match.settings.peekSeconds)
+                if (!performed && heldSeconds >= settings.peekSeconds)
                 {
                     performed = true;
                     if (target == -1)
@@ -141,34 +140,31 @@ public class CheatController : MonoBehaviour
                     }
                 }
             }
-            game.view.Show();
-        }
-        else if (teaLeft > 0)
-        {
-            game.view.ShowRisk();
-        }
-        else if (teaUsed)
-        {
-            game.view.ShowRisk();
+            changed = true;
         }
     }
 
     private void Catch()
     {
+        CancelHold();
+        caught = true;
+        changed = true;
+        message = "Поимка. Ставка сгорела, штраф, гость уходит.";
+    }
+
+    public void CancelHold()
+    {
         holding = false;
         guestVisible = false;
-        game.message = "Поимка. Ставка сгорела, штраф, гость уходит.";
-        game.Finish(-game.stake, game.match.GetAct().fine, true);
     }
 
     public void EndRound()
     {
-        holding = false;
-        guestVisible = false;
+        CancelHold();
         teaLeft = 0;
         if (!roundCheated)
         {
-            suspicion = Mathf.Max(0, suspicion - game.match.settings.honestRelief);
+            suspicion = Mathf.Max(0, suspicion - settings.honestRelief);
         }
     }
 }

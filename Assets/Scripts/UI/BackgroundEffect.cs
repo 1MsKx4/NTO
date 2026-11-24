@@ -1,47 +1,43 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Rendering.Universal;
 
 public class BackgroundEffect : MonoBehaviour
 {
     public MatchScore match;
-    public Image background;
-    public RectTransform picture;
-    public Color finalColor = new Color(0.65f, 0.48f, 0.85f);
-    public float speed = 0.7f, stretch = 0.015f, tilt = 0.6f;
-    private Vector3 normalScale;
-    private Quaternion normalRotation;
-    private Color normalColor;
-    private float wave;
+    public FullScreenPassRendererFeature finalPass;
+    public Texture2D[] filters;
+    public float filterStrength = 1f;
+    public bool saturationOnly;
+    public Color finalColor = new Color(0.85f, 0.65f, 1f);
+    public float strength = 1f, speed = 0.7f, wave = 0.009f;
+    public float colorShift = 0.0015f, vignette = 0.3f;
 
-    private void Awake()
+    private void LateUpdate()
     {
-        normalScale = picture.localScale;
-        normalRotation = picture.localRotation;
-        normalColor = background.color;
-    }
-
-    private void Update()
-    {
+        finalPass.SetActive(match.Act > 0);
+        Shader.SetGlobalFloat("_NTOFinalStrength", 0);
         if (match.Act == 4)
         {
-            wave = Mathf.Sin(Time.time * speed);
-            picture.localScale = Vector3.Scale(normalScale,
-                new Vector3(1.04f + wave * stretch, 1.04f - wave * stretch, 1));
-            picture.localRotation = normalRotation * Quaternion.Euler(0, 0, wave * tilt);
-            background.color = finalColor;
+            Shader.SetGlobalFloat("_NTOFinalStrength", Mathf.Clamp01(strength));
         }
-        else
+        if (match.Act > 0)
         {
-            picture.localScale = normalScale;
-            picture.localRotation = normalRotation;
-            background.color = normalColor;
+            Shader.SetGlobalTexture("_NTOFilter", filters[match.Act - 1]);
         }
+        Shader.SetGlobalFloat("_NTOFilterStrength", Mathf.Clamp01(filterStrength));
+        Shader.SetGlobalInt("_NTOSaturationOnly", 0);
+        if (saturationOnly)
+        {
+            Shader.SetGlobalInt("_NTOSaturationOnly", 1);
+        }
+        Shader.SetGlobalColor("_NTOFinalTint", finalColor);
+        Shader.SetGlobalVector("_NTOFinalSettings", new Vector4(
+            Mathf.Clamp(wave, 0, 0.03f), speed, colorShift, Mathf.Clamp01(vignette)));
     }
 
     private void OnDisable()
     {
-        picture.localScale = normalScale;
-        picture.localRotation = normalRotation;
-        background.color = normalColor;
+        finalPass.SetActive(false);
+        Shader.SetGlobalFloat("_NTOFinalStrength", 0);
     }
 }

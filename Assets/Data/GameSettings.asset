@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GameSettings
   m_EditorClassIdentifier:
   startingGold: 60000
+  bigWinGold: 100000
   pledges: 1027000010270000204e0000
   equalMultiplier: 2
   secondPhaseMultiplier: 2
