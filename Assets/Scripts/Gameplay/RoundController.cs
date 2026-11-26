@@ -7,6 +7,7 @@ public class RoundController : MonoBehaviour
     public CheatController cheats;
     public ThreeCardGame table;
     public CardTableView view;
+    public CardShuffleView shuffleView;
     public RoundPhase phase;
     public int playerCard, guestCard, sleeveCard, stake, selectedStake;
     public Prediction playerPrediction, guestPrediction;
@@ -17,6 +18,7 @@ public class RoundController : MonoBehaviour
     private int change, savedCard;
     private int[] sleeveCards = { 1, 2, 11, 12 };
     private float bluffChance;
+    private TableState state = new TableState();
 
     private void Start()
     {
@@ -30,16 +32,86 @@ public class RoundController : MonoBehaviour
             cheats.Tick(match.GetGuest().extraSuspicion);
             RefreshCheats();
         }
-        if (phase == RoundPhase.Shuffling && table.changed)
+        if (phase == RoundPhase.Shuffling)
         {
-            table.changed = false;
-            if (table.ready)
+            if (table.swapping)
             {
-                phase = RoundPhase.ThreeCards;
-                message = "Найдите карту гостя среди трёх. Для подсмотра сначала используйте чашку.";
+                shuffleView.MoveCards(table.pass, table.first, table.second, table.progress);
             }
-            view.Show();
+            if (table.changed)
+            {
+                table.ClearChange();
+                if (table.ready)
+                {
+                    phase = RoundPhase.ThreeCards;
+                    message = "Найдите карту гостя среди трёх. Для подсмотра сначала используйте чашку.";
+                }
+                RefreshView();
+            }
         }
+    }
+
+    public void RefreshView()
+    {
+        state.phase = phase;
+        state.message = message;
+        state.act = match.Act;
+        state.gold = match.Gold;
+        state.guestGold = match.GuestGold;
+        state.guest = match.Guest;
+        state.guestRound = match.GuestRound;
+        state.guestLeaving = match.GuestLeaving;
+        state.playerCard = playerCard;
+        state.guestCard = guestCard;
+        state.sleeveCard = sleeveCard;
+        state.stake = stake;
+        state.selectedStake = selectedStake;
+        state.predictionsMade = predictionsMade;
+        state.playerPrediction = playerPrediction;
+        state.guestPrediction = guestPrediction;
+        state.showing = table.showing;
+        state.revealed = table.revealed;
+        state.correctCard = table.correctCard;
+        state.guestVisible = cheats.guestVisible;
+        state.holding = cheats.holding;
+        state.suspicion = cheats.suspicion;
+        state.teaLeft = cheats.teaLeft;
+        state.teaUsed = cheats.teaUsed;
+        state.allIn = match.Gold < 15000;
+        state.canGuess = phase == RoundPhase.Prediction && stake > 0 && !cheats.holding;
+        state.canTea = !cheats.teaUsed && stake > 0;
+        state.canBluff = state.canGuess && !cheats.bluffUsed;
+        state.canSkip = phase == RoundPhase.Prediction && !cheats.skipUsed && match.Gold >= 30000 &&
+            !cheats.roundCheated && !cheats.holding;
+        state.showSleeve = phase == RoundPhase.Prediction && match.Act >= 2;
+        state.stakeCount = 0;
+        if (phase != RoundPhase.Newspaper)
+        {
+            state.guestName = match.GetGuest().guestName;
+            state.guestRounds = match.GetGuest().rounds;
+            state.guestCount = match.GetAct().guests.Length;
+            state.stakeCount = match.GetAct().stakes.Length;
+            for (int i = 0; i < state.stakeCount; i++)
+            {
+                state.stakes[i] = match.GetStake(i);
+                state.stakeAvailable[i] = phase == RoundPhase.Prediction && stake == 0 && match.StakeAvailable(i);
+            }
+        }
+        for (int i = 0; i < state.seenCards.Length; i++)
+        {
+            state.seenCards[i] = cheats.seenCards[i];
+        }
+        view.Show(state);
+    }
+
+    public bool TeaActive()
+    {
+        return cheats.teaLeft > 0;
+    }
+
+    public float PeekSeconds()
+    {
+        return match.settings.peekSeconds;
     }
 
     public void Tea()
@@ -52,7 +124,7 @@ public class RoundController : MonoBehaviour
         }
     }
 
-    public void HoldCard(int card)
+    public bool HoldCard(int card)
     {
         if (!cheats.holding && stake > 0 &&
             (phase == RoundPhase.Prediction && card < 0 ||
@@ -61,6 +133,7 @@ public class RoundController : MonoBehaviour
             cheats.Hold(card);
             RefreshCheats();
         }
+        return cheats.holding;
     }
 
     public void ReleaseCard(bool dropped)
@@ -78,15 +151,12 @@ public class RoundController : MonoBehaviour
     {
         if (cheats.changed)
         {
-            cheats.changed = false;
             if (cheats.message != "")
             {
                 message = cheats.message;
-                cheats.message = "";
             }
             if (cheats.swapCard)
             {
-                cheats.swapCard = false;
                 savedCard = playerCard;
                 playerCard = sleeveCard;
                 sleeveCard = savedCard;
@@ -94,17 +164,18 @@ public class RoundController : MonoBehaviour
             }
             if (cheats.caught)
             {
-                cheats.caught = false;
+                cheats.ClearResult();
                 Finish(-stake, match.GetAct().fine, true);
             }
             else
             {
-                view.Show();
+                cheats.ClearResult();
+                RefreshView();
             }
         }
         else if (cheats.teaUsed)
         {
-            view.ShowRisk();
+            view.ShowRisk(cheats.suspicion, cheats.teaLeft, cheats.teaUsed);
         }
     }
 
@@ -112,7 +183,7 @@ public class RoundController : MonoBehaviour
     {
         phase = RoundPhase.Newspaper;
         message = "Газета: «Граф желает играть»";
-        view.Show();
+        RefreshView();
     }
 
     public void Continue()
@@ -144,6 +215,7 @@ public class RoundController : MonoBehaviour
 
     private void NewGuest()
     {
+        cheats.settings = match.settings;
         cheats.ResetGuest();
         sleeveCard = sleeveCards[Random.Range(0, sleeveCards.Length)];
     }
@@ -155,12 +227,12 @@ public class RoundController : MonoBehaviour
         stake = 0;
         selectedStake = -1;
         predictionsMade = false;
-        table.showing = false;
-        table.revealed = false;
+        table.ResetRound();
+        shuffleView.ResetCards();
         cheats.ResetRound();
         phase = RoundPhase.Prediction;
         message = "Выберите ставку. Прогноз относится к вашей карте относительно карты гостя.";
-        view.Show();
+        RefreshView();
     }
 
     public void SelectStake(int index)
@@ -170,7 +242,7 @@ public class RoundController : MonoBehaviour
             selectedStake = index;
             stake = match.GetStake(index);
             message = $"Вы поставили {stake:N0}, гость поставил столько же. Сделайте прогноз.";
-            view.Show();
+            RefreshView();
         }
     }
 
@@ -187,9 +259,10 @@ public class RoundController : MonoBehaviour
             {
                 phase = RoundPhase.Shuffling;
                 message = "Оба угадали. Запомните карту гостя и следите за тасовкой.";
-                view.Show();
+                shuffleView.ResetCards();
                 table.Begin(match.settings.showCardSeconds,
                     match.GetAct().shuffleSeconds, match.GetAct().shuffleMoves);
+                RefreshView();
             }
             else
             {
@@ -233,8 +306,7 @@ public class RoundController : MonoBehaviour
     {
         if (phase == RoundPhase.Prediction && stake > 0 && !cheats.bluffUsed && !cheats.holding)
         {
-            cheats.bluffUsed = true;
-            cheats.roundCheated = true;
+            cheats.UseBluff();
             bluffChance = match.settings.edgeBluffChance;
             if (guestCard >= 4 && guestCard <= 9)
             {
@@ -249,7 +321,7 @@ public class RoundController : MonoBehaviour
             {
                 stake = Mathf.Min(stake * 2, Mathf.Min(match.Gold, match.GuestGold / 2));
                 message = $"Гость не поверил. Ставка выросла до {stake:N0}. Выберите прогноз.";
-                view.Show();
+                RefreshView();
             }
         }
     }
@@ -259,7 +331,7 @@ public class RoundController : MonoBehaviour
         if (phase == RoundPhase.Prediction && !cheats.skipUsed && match.Gold >= 30000 &&
             !cheats.roundCheated && !cheats.holding)
         {
-            cheats.skipUsed = true;
+            cheats.UseSkip();
             message = "Кон пропущен";
             Finish(0, 0, false);
         }
@@ -269,9 +341,7 @@ public class RoundController : MonoBehaviour
     {
         if (phase == RoundPhase.ThreeCards && !cheats.holding)
         {
-            table.chosenCard = index;
-            table.revealed = true;
-            playerCorrect = index == table.correctCard;
+            playerCorrect = table.Reveal(index);
             guestCorrect = Random.value < match.settings.opponentFindChance;
             change = 0;
             message = "Оба промахнулись. Ничья";
@@ -310,42 +380,7 @@ public class RoundController : MonoBehaviour
                 phase = RoundPhase.Ending;
                 message = match.Ending;
             }
-            view.Show();
+            RefreshView();
         }
     }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    public void RecordingAct(int act)
-    {
-        if (match.ResetMatch())
-        {
-            table.StopAllCoroutines();
-            match.Act = act;
-            match.StartGuest();
-            playerDeck.Shuffle();
-            guestDeck.Shuffle();
-            NewGuest();
-            Deal();
-        }
-    }
-
-    public void RecordingGold(int gold)
-    {
-        if (phase == RoundPhase.Newspaper || phase == RoundPhase.Ending)
-        {
-            RecordingAct(1);
-        }
-        if (phase != RoundPhase.Newspaper && phase != RoundPhase.Ending)
-        {
-            table.StopAllCoroutines();
-            match.Gold = gold;
-            Deal();
-            if (gold == 0)
-            {
-                message = "Золото закончилось";
-                Finish(0, 0, false);
-            }
-        }
-    }
-#endif
 }

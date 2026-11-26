@@ -1,27 +1,38 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ThreeCardGame : MonoBehaviour
 {
-    public Button[] cards;
     public int correctCard, chosenCard;
     public bool showing, revealed;
     public bool changed, ready;
-    private Vector2[] places = new Vector2[3];
-    private int first, second, pass;
+    public int first, second, pass;
+    public float progress;
+    public bool swapping;
     private float elapsed, duration;
     private float showSeconds;
     private int moves;
-    private Vector2 firstPlace, secondPlace;
-    private RectTransform firstRect, secondRect;
 
-    private void Awake()
+    public void ResetRound()
     {
-        for (int i = 0; i < cards.Length; i++)
-        {
-            places[i] = ((RectTransform)cards[i].transform).anchoredPosition;
-        }
+        StopAllCoroutines();
+        showing = false;
+        revealed = false;
+        changed = false;
+        ready = false;
+        swapping = false;
+    }
+
+    public void ClearChange()
+    {
+        changed = false;
+    }
+
+    public bool Reveal(int index)
+    {
+        chosenCard = index;
+        revealed = true;
+        return index == correctCard;
     }
 
     public void Begin(float seconds, float shuffleSeconds, int shuffleMoves)
@@ -35,10 +46,6 @@ public class ThreeCardGame : MonoBehaviour
         chosenCard = -1;
         showing = true;
         revealed = false;
-        for (int i = 0; i < cards.Length; i++)
-        {
-            ((RectTransform)cards[i].transform).anchoredPosition = places[i];
-        }
         StartCoroutine(Shuffle());
     }
 
@@ -51,20 +58,17 @@ public class ThreeCardGame : MonoBehaviour
         {
             first = Random.Range(0, 3);
             second = (first + Random.Range(1, 3)) % 3;
-            firstRect = (RectTransform)cards[first].transform;
-            secondRect = (RectTransform)cards[second].transform;
-            firstPlace = firstRect.anchoredPosition;
-            secondPlace = secondRect.anchoredPosition;
             elapsed = 0;
+            progress = 0;
+            swapping = true;
+            yield return null;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                firstRect.anchoredPosition = Vector2.Lerp(firstPlace, secondPlace, elapsed / duration);
-                secondRect.anchoredPosition = Vector2.Lerp(secondPlace, firstPlace, elapsed / duration);
+                progress = Mathf.Clamp01(elapsed / duration);
                 yield return null;
             }
-            firstRect.anchoredPosition = secondPlace;
-            secondRect.anchoredPosition = firstPlace;
+            swapping = false;
             yield return new WaitForSeconds(0.1f);
         }
         ready = true;

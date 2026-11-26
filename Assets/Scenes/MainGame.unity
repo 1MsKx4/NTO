@@ -1391,9 +1391,9 @@ GameObject:
   - component: {fileID: 2055032954}
   - component: {fileID: 2055032953}
   - component: {fileID: 175000001}
-  - component: {fileID: 184000000}
   - component: {fileID: 175000002}
   - component: {fileID: 175000003}
+  - component: {fileID: 185000200}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1767,8 +1767,7 @@ MonoBehaviour:
   nextLabel: {fileID: 977927237}
   teaLabel: {fileID: 174000037}
   sleeve: {fileID: 174000050}
-  game: {fileID: 175000001}
-  cheats: {fileID: 175000002}
+  effect: {fileID: 183000000}
   gameCamera: {fileID: 519420031}
   background: {fileID: 179000000}
   newspaperScreen: {fileID: 180000000}
@@ -4329,6 +4328,7 @@ MonoBehaviour:
   cheats: {fileID: 175000002}
   table: {fileID: 175000003}
   view: {fileID: 172022893}
+  shuffleView: {fileID: 185000200}
 --- !u!114 &175000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4354,10 +4354,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a702c89f46d4008841050dc6203ecbe, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  cards:
-  - {fileID: 178000002}
-  - {fileID: 178000012}
-  - {fileID: 178000022}
 --- !u!114 &175000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4951,7 +4947,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d6d962f542c4ec6af727834b6fbccc5, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  match: {fileID: 173022894}
   finalPass: {fileID: 185000100, guid: 424799608f7334c24bf367e4bbfa7f9a, type: 2}
   filters:
   - {fileID: 2800000, guid: 9fb435231d1a46028b2f9a91b1fdf4b9, type: 3}
@@ -4966,20 +4961,6 @@ MonoBehaviour:
   wave: 0.009
   colorShift: 0.0015
   vignette: 0.3
---- !u!114 &184000000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2055032952}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdde9ef1274541b2b125885c8249b32f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  game: {fileID: 175000001}
-  hotkeysEnabled: 1
 --- !u!1 &185000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -5064,6 +5045,22 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!114 &185000200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2055032952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2877608879de41ff9b390fd43ba02df6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  cards:
+  - {fileID: 178000001}
+  - {fileID: 178000011}
+  - {fileID: 178000021}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

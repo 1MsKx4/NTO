@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 public class BackgroundEffect : MonoBehaviour
 {
-    public MatchScore match;
+    public int act;
     public FullScreenPassRendererFeature finalPass;
     public Texture2D[] filters;
     public float filterStrength = 1f;
@@ -14,15 +14,15 @@ public class BackgroundEffect : MonoBehaviour
 
     private void LateUpdate()
     {
-        finalPass.SetActive(match.Act > 0);
+        finalPass.SetActive(act > 0);
         Shader.SetGlobalFloat("_NTOFinalStrength", 0);
-        if (match.Act == 4)
+        if (act == 4)
         {
             Shader.SetGlobalFloat("_NTOFinalStrength", Mathf.Clamp01(strength));
         }
-        if (match.Act > 0)
+        if (act > 0)
         {
-            Shader.SetGlobalTexture("_NTOFilter", filters[match.Act - 1]);
+            Shader.SetGlobalTexture("_NTOFilter", filters[act - 1]);
         }
         Shader.SetGlobalFloat("_NTOFilterStrength", Mathf.Clamp01(filterStrength));
         Shader.SetGlobalInt("_NTOSaturationOnly", 0);

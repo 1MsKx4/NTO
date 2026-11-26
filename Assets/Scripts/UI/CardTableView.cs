@@ -14,18 +14,20 @@ public class CardTableView : MonoBehaviour
     public Text nextLabel, teaLabel;
     public GameObject sleeve;
     public GameObject background, newspaperScreen;
-    public RoundController game;
-    public CheatController cheats;
+    public BackgroundEffect effect;
     public Camera gameCamera;
 
+    private TableState data;
     private bool playing, prediction, table, active;
     private int amount;
     private ColorBlock colors;
     private string[] signs = { "<", "=", ">" };
 
-    public void Show()
+    public void Show(TableState state)
     {
-        playing = game.phase != RoundPhase.Newspaper;
+        data = state;
+        effect.act = data.act;
+        playing = data.phase != RoundPhase.Newspaper;
         background.SetActive(playing);
         newspaperScreen.SetActive(!playing);
         roundResultText.gameObject.SetActive(playing);
@@ -33,9 +35,9 @@ public class CardTableView : MonoBehaviour
         {
             gameCamera.backgroundColor = Color.black;
         }
-        prediction = game.phase == RoundPhase.Prediction;
-        table = game.phase == RoundPhase.ThreeCards || game.phase == RoundPhase.Shuffling ||
-            game.phase == RoundPhase.Result && game.table.revealed;
+        prediction = data.phase == RoundPhase.Prediction;
+        table = data.phase == RoundPhase.ThreeCards || data.phase == RoundPhase.Shuffling ||
+            data.phase == RoundPhase.Result && data.revealed;
 
         scoreText.gameObject.SetActive(playing);
         opponentCardText.gameObject.SetActive(playing);
@@ -44,20 +46,20 @@ public class CardTableView : MonoBehaviour
         bankText.gameObject.SetActive(playing);
         suspicionText.gameObject.SetActive(playing);
         suspicionBar.SetActive(playing);
-        roundResultText.text = game.message;
+        roundResultText.text = data.message;
         nextRoundButton.gameObject.SetActive(playing && !prediction &&
-            game.phase != RoundPhase.Shuffling && game.phase != RoundPhase.ThreeCards);
+            data.phase != RoundPhase.Shuffling && data.phase != RoundPhase.ThreeCards);
 
         nextLabel.text = "Следующий кон";
-        if (game.phase == RoundPhase.Newspaper)
+        if (data.phase == RoundPhase.Newspaper)
         {
             nextLabel.text = "Открыть газету";
         }
-        else if (game.phase == RoundPhase.Ending)
+        else if (data.phase == RoundPhase.Ending)
         {
             nextLabel.text = "Начать заново";
         }
-        else if (game.match.GuestLeaving)
+        else if (data.guestLeaving)
         {
             nextLabel.text = "Следующий гость";
         }
@@ -65,26 +67,26 @@ public class CardTableView : MonoBehaviour
         lessButton.gameObject.SetActive(prediction);
         equalButton.gameObject.SetActive(prediction);
         greaterButton.gameObject.SetActive(prediction);
-        lessButton.interactable = game.stake > 0 && !cheats.holding;
+        lessButton.interactable = data.canGuess;
         equalButton.interactable = lessButton.interactable;
         greaterButton.interactable = lessButton.interactable;
         for (int i = 0; i < stakes.Length; i++)
         {
-            active = playing && i < game.match.GetAct().stakes.Length;
+            active = playing && i < data.stakeCount;
             stakes[i].gameObject.SetActive(active);
             if (active)
             {
-                amount = game.match.GetStake(i);
+                amount = data.stakes[i];
                 stakeLabels[i].text = amount.ToString("N0");
-                if (game.match.Gold < 15000)
+                if (data.allIn)
                 {
                     stakeLabels[i].text = "Ва-банк " + amount.ToString("N0");
                 }
-                stakes[i].interactable = prediction && game.stake == 0 && game.match.StakeAvailable(i);
+                stakes[i].interactable = data.stakeAvailable[i];
                 colors = stakes[i].colors;
                 colors.normalColor = Color.white;
                 colors.disabledColor = new Color(0.55f, 0.55f, 0.55f);
-                if (game.selectedStake == i)
+                if (data.selectedStake == i)
                 {
                     colors.disabledColor = new Color(0.9f, 0.74f, 0.45f);
                 }
@@ -92,77 +94,76 @@ public class CardTableView : MonoBehaviour
             }
         }
 
-        teaButton.gameObject.SetActive(prediction || game.phase == RoundPhase.ThreeCards);
-        teaButton.interactable = !cheats.teaUsed && game.stake > 0;
+        teaButton.gameObject.SetActive(prediction || data.phase == RoundPhase.ThreeCards);
+        teaButton.interactable = data.canTea;
         bluffButton.gameObject.SetActive(prediction);
-        bluffButton.interactable = !cheats.bluffUsed && game.stake > 0 && !cheats.holding;
+        bluffButton.interactable = data.canBluff;
         skipButton.gameObject.SetActive(prediction);
-        skipButton.interactable = !cheats.skipUsed && game.match.Gold >= 30000 &&
-            !cheats.roundCheated && !cheats.holding;
-        sleeve.SetActive(prediction && game.match.Act >= 2);
+        skipButton.interactable = data.canSkip;
+        sleeve.SetActive(data.showSleeve);
 
         for (int i = 0; i < tableCards.Length; i++)
         {
             tableCards[i].gameObject.SetActive(table);
-            tableCards[i].interactable = game.phase == RoundPhase.ThreeCards;
+            tableCards[i].interactable = data.phase == RoundPhase.ThreeCards;
             cardLabels[i].text = "?";
-            if ((game.table.showing || game.table.revealed || cheats.holding &&
-                cheats.seenCards[i] && cheats.teaLeft > 0))
+            if ((data.showing || data.revealed || data.holding &&
+                data.seenCards[i] && data.teaLeft > 0))
             {
                 cardLabels[i].text = "Пусто";
-                if (i == game.table.correctCard)
+                if (i == data.correctCard)
                 {
-                    cardLabels[i].text = game.guestCard.ToString();
+                    cardLabels[i].text = data.guestCard.ToString();
                 }
             }
         }
 
         if (playing)
         {
-            playerCardText.text = $"<size=26>Ваша карта</size>\n<size=64>{game.playerCard}</size>";
-            opponentCardText.text = game.match.GetGuest().guestName + "\nКарта: ?";
-            if (cheats.guestVisible || game.predictionsMade)
+            playerCardText.text = $"<size=26>Ваша карта</size>\n<size=64>{data.playerCard}</size>";
+            opponentCardText.text = data.guestName + "\nКарта: ?";
+            if (data.guestVisible || data.predictionsMade)
             {
-                opponentCardText.text = game.match.GetGuest().guestName + $"\nКарта: {game.guestCard}";
+                opponentCardText.text = data.guestName + $"\nКарта: {data.guestCard}";
             }
-            sleeveText.text = $"Рукав: {game.sleeveCard}\nПеретащить на свою карту";
-            scoreText.text = $"Золото: {game.match.Gold:N0}    Акт {game.match.Act}    Гость {game.match.Guest}/{game.match.GetAct().guests.Length}    Кон {game.match.GuestRound}/{game.match.GetGuest().rounds}";
-            bankText.text = $"Гость: {game.match.GuestGold:N0}    Банк: {game.stake * 2:N0}";
-            if (game.phase == RoundPhase.Result || game.phase == RoundPhase.Ending)
+            sleeveText.text = $"Рукав: {data.sleeveCard}\nПеретащить на свою карту";
+            scoreText.text = $"Золото: {data.gold:N0}    Акт {data.act}    Гость {data.guest}/{data.guestCount}    Кон {data.guestRound}/{data.guestRounds}";
+            bankText.text = $"Гость: {data.guestGold:N0}    Банк: {data.stake * 2:N0}";
+            if (data.phase == RoundPhase.Result || data.phase == RoundPhase.Ending)
             {
-                bankText.text = $"У гостя осталось: {game.match.GuestGold:N0}";
+                bankText.text = $"У гостя осталось: {data.guestGold:N0}";
             }
             tableCardText.text = "Моя карта относительно карты гостя";
-            if (game.predictionsMade)
+            if (data.predictionsMade)
             {
-                tableCardText.text = $"Вы: {signs[(int)game.playerPrediction]}    Гость: {signs[(int)game.guestPrediction]}";
+                tableCardText.text = $"Вы: {signs[(int)data.playerPrediction]}    Гость: {signs[(int)data.guestPrediction]}";
             }
             gameCamera.backgroundColor = new Color(0.18f, 0.20f, 0.12f);
-            if (game.match.Gold <= 40000)
+            if (data.gold <= 40000)
             {
                 gameCamera.backgroundColor = new Color(0.13f, 0.15f, 0.14f);
             }
-            if (game.match.Act == 4)
+            if (data.act == 4)
             {
                 gameCamera.backgroundColor = new Color(0.13f, 0.08f, 0.23f);
             }
-            ShowRisk();
+            ShowRisk(data.suspicion, data.teaLeft, data.teaUsed);
         }
     }
 
-    public void ShowRisk()
+    public void ShowRisk(float suspicion, float teaLeft, bool teaUsed)
     {
-        suspicionText.text = $"Подозрение: {cheats.suspicion:0}%";
+        suspicionText.text = $"Подозрение: {suspicion:0}%";
         teaLabel.text = "Чашка чая";
-        if (cheats.teaLeft > 0)
+        if (teaLeft > 0)
         {
-            teaLabel.text = $"Отвернулся: {cheats.teaLeft:0.0} с";
+            teaLabel.text = $"Отвернулся: {teaLeft:0.0} с";
         }
-        else if (cheats.teaUsed)
+        else if (teaUsed)
         {
             teaLabel.text = "Чашка потрачена";
         }
-        suspicionFill.rectTransform.anchorMax = new Vector2(1, cheats.suspicion / 100f);
-        suspicionFill.color = Color.Lerp(new Color(0.79f, 0.65f, 0.36f), Color.red, cheats.suspicion / 100f);
+        suspicionFill.rectTransform.anchorMax = new Vector2(1, suspicion / 100f);
+        suspicionFill.color = Color.Lerp(new Color(0.79f, 0.65f, 0.36f), Color.red, suspicion / 100f);
     }
 }

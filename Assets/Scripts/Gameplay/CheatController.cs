@@ -13,6 +13,25 @@ public class CheatController : MonoBehaviour
     private float heldSeconds;
     private bool performed;
 
+    public void ClearResult()
+    {
+        changed = false;
+        caught = false;
+        swapCard = false;
+        message = "";
+    }
+
+    public void UseBluff()
+    {
+        bluffUsed = true;
+        roundCheated = true;
+    }
+
+    public void UseSkip()
+    {
+        skipUsed = true;
+    }
+
     public void ResetGuest()
     {
         suspicion = 0;

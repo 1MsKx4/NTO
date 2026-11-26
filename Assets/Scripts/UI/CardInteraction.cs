@@ -34,7 +34,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         {
             pressed = true;
             pressedSeconds = 0;
-            cheatClick = game.cheats.teaLeft > 0;
+            cheatClick = game.TeaActive();
             if (card < 0 || cheatClick)
             {
                 game.HoldCard(card);
@@ -47,7 +47,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         if (pressed && card >= 0 && !cheatClick)
         {
             pressedSeconds += Time.deltaTime;
-            if (pressedSeconds >= game.match.settings.peekSeconds)
+            if (pressedSeconds >= game.PeekSeconds())
             {
                 cheatClick = true;
                 game.HoldCard(card);
@@ -82,8 +82,7 @@ public class CardInteraction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     {
         if (card == -2 && data.button == PointerEventData.InputButton.Left)
         {
-            game.HoldCard(card);
-            dragging = game.cheats.holding;
+            dragging = game.HoldCard(card);
             pressed = dragging;
         }
     }
