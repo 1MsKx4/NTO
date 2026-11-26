@@ -15,6 +15,7 @@ public class CardTableView : MonoBehaviour
     public GameObject sleeve;
     public GameObject background, newspaperScreen;
     public BackgroundEffect effect;
+    public GameMusic music;
     public Camera gameCamera;
 
     private TableState data;
@@ -27,6 +28,7 @@ public class CardTableView : MonoBehaviour
     {
         data = state;
         effect.act = data.act;
+        music.act = data.act;
         playing = data.phase != RoundPhase.Newspaper;
         background.SetActive(playing);
         newspaperScreen.SetActive(!playing);
