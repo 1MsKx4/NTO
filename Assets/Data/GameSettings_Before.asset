@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08bc3c4b6934e3f919e74f6923698b9, type: 3}
+  m_Name: GameSettings_Before
+  m_EditorClassIdentifier: 
+  startingGold: 60000
+  bigWinGold: 100000
+  pledges: 1027000010270000204e0000
+  equalMultiplier: 2
+  secondPhaseMultiplier: 2
+  peekSeconds: 0.4
+  showCardSeconds: 0.5
+  teaSuspicion: 20
+  handSuspicion: 50
+  honestRelief: 15
+  opponentFindChance: 0.33
+  middleBluffChance: 0.65
+  edgeBluffChance: 0.1
+  acts:
+  - stakes: e80300008813000010270000
+    fine: 2000
+    teaSeconds: 4
+    shuffleSeconds: 0.85
+    shuffleMoves: 3
+    guests:
+    - guestName: "\u0420\u0430\u0441\u0441\u0435\u044F\u043D\u043D\u044B\u0439"
+      rounds: 3
+      gold: 60000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 87250bb4f7189e14da1f63eaef8c0b0c, type: 3}
+      withoutCard: {fileID: 2800000, guid: 1ffe9e8e1e9b2544f8c3b95d97e78461, type: 3}
+    - guestName: "\u041F\u0435\u0434\u0430\u043D\u0442"
+      rounds: 3
+      gold: 60000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 0df0515d475dc944bab2382de1043950, type: 3}
+      withoutCard: {fileID: 2800000, guid: 2016109643154a8489bd31caa634ee07, type: 3}
+    - guestName: "\u0410\u0437\u0430\u0440\u0442\u043D\u044B\u0439"
+      rounds: 3
+      gold: 60000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: d8e740c994a9b9a4186b1a246813441b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 37a29b34e3684014f82508461b783f89, type: 3}
+  - stakes: 8813000010270000204e0000
+    fine: 5000
+    teaSeconds: 3
+    shuffleSeconds: 0.5
+    shuffleMoves: 4
+    guests:
+    - guestName: "\u0421\u043B\u0435\u0434\u044F\u0449\u0438\u0435 \u0433\u043B\u0430\u0437\u0430"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
+    - guestName: "\u0421\u043B\u0435\u0434\u044F\u0449\u0438\u0435 \u0433\u043B\u0430\u0437\u0430"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
+    - guestName: "\u0421\u043B\u0435\u0434\u044F\u0449\u0438\u0435 \u0433\u043B\u0430\u0437\u0430"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
+    - guestName: "\u0421\u043B\u0435\u0434\u044F\u0449\u0438\u0435 \u0433\u043B\u0430\u0437\u0430"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
+    - guestName: "\u0421\u043B\u0435\u0434\u044F\u0449\u0438\u0435 \u0433\u043B\u0430\u0437\u0430"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
+  - stakes: 10270000204e0000
+    fine: 10000
+    teaSeconds: 2.5
+    shuffleSeconds: 0.3
+    shuffleMoves: 5
+    guests:
+    - guestName: "\u0411\u0435\u0437\u043B\u0438\u043A\u0438\u0439 \u0441\u0438\u043B\u0443\u044D\u0442"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0411\u0435\u0437\u043B\u0438\u043A\u0438\u0439 \u0441\u0438\u043B\u0443\u044D\u0442"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0411\u0435\u0437\u043B\u0438\u043A\u0438\u0439 \u0441\u0438\u043B\u0443\u044D\u0442"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0411\u0435\u0437\u043B\u0438\u043A\u0438\u0439 \u0441\u0438\u043B\u0443\u044D\u0442"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0411\u0435\u0437\u043B\u0438\u043A\u0438\u0439 \u0441\u0438\u043B\u0443\u044D\u0442"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+  - stakes: 204e0000
+    fine: 10000
+    teaSeconds: 2
+    shuffleSeconds: 0.25
+    shuffleMoves: 5
+    guests:
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
+    - guestName: "\u0416\u0443\u0442\u043A\u0438\u0439 \u043E\u0431\u0440\u0430\u0437"
+      rounds: 3
+      gold: 120000
+      extraSuspicion: 0
+      hasPortrait: 0
+      withCard: {fileID: 0}
+      withoutCard: {fileID: 0}
