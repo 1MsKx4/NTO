@@ -14,8 +14,10 @@ public class CardTableView : MonoBehaviour
     public Text nextLabel, teaLabel;
     public GameObject sleeve;
     public GameObject background, newspaperScreen;
+    public GameObject[] panels;
     public BackgroundEffect effect;
     public GameMusic music;
+    public OpponentView opponent;
     public Camera gameCamera;
 
     private TableState data;
@@ -27,9 +29,14 @@ public class CardTableView : MonoBehaviour
     public void Show(TableState state)
     {
         data = state;
+        opponent.Show(data);
         effect.act = data.act;
         music.act = data.act;
         playing = data.phase != RoundPhase.Newspaper;
+        foreach (GameObject panel in panels)
+        {
+            panel.SetActive(playing);
+        }
         background.SetActive(playing);
         newspaperScreen.SetActive(!playing);
         roundResultText.gameObject.SetActive(playing);
@@ -129,7 +136,7 @@ public class CardTableView : MonoBehaviour
                 opponentCardText.text = data.guestName + $"\nКарта: {data.guestCard}";
             }
             sleeveText.text = $"Рукав: {data.sleeveCard}\nПеретащить на свою карту";
-            scoreText.text = $"Золото: {data.gold:N0}    Акт {data.act}    Гость {data.guest}/{data.guestCount}    Кон {data.guestRound}/{data.guestRounds}";
+            scoreText.text = $"Золото: {data.gold:N0}\nАкт {data.act}  ·  Гость {data.guest}/{data.guestCount}  ·  Кон {data.guestRound}/{data.guestRounds}";
             bankText.text = $"Гость: {data.guestGold:N0}    Банк: {data.stake * 2:N0}";
             if (data.phase == RoundPhase.Result || data.phase == RoundPhase.Ending)
             {
@@ -165,7 +172,7 @@ public class CardTableView : MonoBehaviour
         {
             teaLabel.text = "Чашка потрачена";
         }
-        suspicionFill.rectTransform.anchorMax = new Vector2(1, suspicion / 100f);
+        suspicionFill.rectTransform.anchorMax = new Vector2(suspicion / 100f, 1);
         suspicionFill.color = Color.Lerp(new Color(0.79f, 0.65f, 0.36f), Color.red, suspicion / 100f);
     }
 }

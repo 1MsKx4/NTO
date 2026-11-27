@@ -6,6 +6,8 @@ public class TableState
     public int gold, guestGold, act, guest, guestCount, guestRound, guestRounds;
     public int stakeCount, correctCard;
     public string message, guestName;
+    public bool hasPortrait;
+    public UnityEngine.Texture2D withCard, withoutCard;
     public bool predictionsMade, guestLeaving, guestVisible, holding, teaUsed;
     public bool showing, revealed, allIn, canGuess, canTea, canBluff, canSkip, showSleeve;
     public float suspicion, teaLeft;

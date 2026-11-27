@@ -33,14 +33,23 @@ MonoBehaviour:
     shuffleMoves: 3
     guests:
     - guestName: Рассеянный
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 87250bb4f7189e14da1f63eaef8c0b0c, type: 3}
+      withoutCard: {fileID: 2800000, guid: 1ffe9e8e1e9b2544f8c3b95d97e78461, type: 3}
       rounds: 3
       gold: 60000
       extraSuspicion: 0
     - guestName: Педант
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 0df0515d475dc944bab2382de1043950, type: 3}
+      withoutCard: {fileID: 2800000, guid: 2016109643154a8489bd31caa634ee07, type: 3}
       rounds: 3
       gold: 60000
       extraSuspicion: 0
     - guestName: Азартный
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: d8e740c994a9b9a4186b1a246813441b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 37a29b34e3684014f82508461b783f89, type: 3}
       rounds: 3
       gold: 60000
       extraSuspicion: 0
@@ -51,22 +60,37 @@ MonoBehaviour:
     shuffleMoves: 4
     guests:
     - guestName: Следящие глаза
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
       rounds: 3
       gold: 120000
       extraSuspicion: 0
     - guestName: Следящие глаза
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
       rounds: 3
       gold: 120000
       extraSuspicion: 0
     - guestName: Следящие глаза
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
       rounds: 3
       gold: 120000
       extraSuspicion: 0
     - guestName: Следящие глаза
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
       rounds: 3
       gold: 120000
       extraSuspicion: 0
     - guestName: Следящие глаза
+      hasPortrait: 1
+      withCard: {fileID: 2800000, guid: 8852b7f1a1c91ab4297c95cc2e13f32b, type: 3}
+      withoutCard: {fileID: 2800000, guid: 7911a31bb75fd674c952e95df4c37d53, type: 3}
       rounds: 3
       gold: 120000
       extraSuspicion: 0

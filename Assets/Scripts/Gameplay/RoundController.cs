@@ -88,6 +88,9 @@ public class RoundController : MonoBehaviour
         if (phase != RoundPhase.Newspaper)
         {
             state.guestName = match.GetGuest().guestName;
+            state.hasPortrait = match.GetGuest().hasPortrait;
+            state.withCard = match.GetGuest().withCard;
+            state.withoutCard = match.GetGuest().withoutCard;
             state.guestRounds = match.GetGuest().rounds;
             state.guestCount = match.GetAct().guests.Length;
             state.stakeCount = match.GetAct().stakes.Length;

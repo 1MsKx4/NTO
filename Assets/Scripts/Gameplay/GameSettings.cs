@@ -85,4 +85,6 @@ public class GuestSettings
 {
     public string guestName;
     public int rounds = 3, gold = 60000, extraSuspicion;
+    public bool hasPortrait;
+    public Texture2D withCard, withoutCard;
 }
